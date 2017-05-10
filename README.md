@@ -12,7 +12,7 @@ With test configuration, test will do:
 7. run JMeter tests based on test plan on test client, against test services endpoints created in step 1.
 8. download test result csv file to local path specified in test configuration.
 
-#usage
+# usage
 
 1. specify test configuration in testConfig.json
     - azure.client is configuration for test client
