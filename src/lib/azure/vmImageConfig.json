@@ -1,0 +1,15 @@
+{
+    "windows": {
+        "publisher": "microsoftwindowsserver",
+        "offer": "windowsserver",
+        "sku": "2012-r2-datacenter",
+        "osType": "windows",
+        "localBaseImage": "E:\\vsiot1\\javabenchmark\\lib\baseimage.vhd"
+    },
+    "ubuntu": {
+        "publisher": "Canonical",
+        "offer": "UbuntuServer",
+        "sku": "16.04-LTS",
+        "osType": "Linux"
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "azure": {
+        "client": {
+            "type": "vm",
+            "os": "ubuntu",
+            "size": "Standard_A1",
+            "region": "east us",
+            "resourcegroup": "test1",
+            "name": "a1eastusclient",
+            "username": "yungez",
+            "password": "!Passw0rd1234"
+        },
+        "resources": [
+            {
+                "type": "webapp",
+                "size": "B1",
+                "region": "west us",
+                "resourcegroup": "test1"
+            },
+            {
+                "type": "vm",
+                "os": "ubuntu",
+                "size": "Standard_A1",
+                "region": "east us",
+                "username": "yungez",
+                "password": "!Passw0rd1234",
+                "resourcegroup": "test1"
+            }
+        ],
+        "testplan": {
+            "threadnum": 500,
+            "loopcount": 1,
+            "rampupseconds": 5,
+            "sampletestplan": "E:\\vsiot1\\azurejavabenchmark\\src\\testplan\\sampleplan.jmx",
+            "localtestresultsfolder": "E:\\vsiot1\\azurejavabenchmark\\testresults",
+            "testfile": "C:\\Users\\yungez\\Downloads\\What-is-docker-and-container.jpg"
+        },
+        "testapp": {
+            "dockerimage": "yungez/tomcat1"
+        }
+    }
+}

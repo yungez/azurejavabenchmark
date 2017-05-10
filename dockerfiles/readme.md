@@ -1,0 +1,1 @@
+./dockerfile is docker file which contains test java app
