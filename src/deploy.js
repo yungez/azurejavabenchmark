@@ -59,7 +59,10 @@ function createAzureResource(clientId, tenantId, key, subsId, resourceConfigs, c
                                         return cb(err);
                                     } else {
                                         // save resource group and vm name to results
-                                        results.push({ type: config.type, resourcegroup: config.resourcegroup, name: name, address: vmip, os: config.os, username: config.username, key: config.password });
+                                        results.push({
+                                            type: config.type, resourcegroup: config.resourcegroup, name: name, address: vmip, os: config.os,
+                                            region: config.region, username: config.username, key: config.password, size: config.size
+                                        });
                                         return cb(null);
                                     }
                                 });
@@ -97,13 +100,44 @@ function createAzureResource(clientId, tenantId, key, subsId, resourceConfigs, c
                                         return cb(err);
                                     } else {
                                         // save resource group and app name to results
-                                        results.push({ type: config.type, resourcegroup: config.resourcegroup, name: name, address: webapp.hostNames[0] });
+                                        results.push({ type: config.type, resourcegroup: config.resourcegroup, name: name, address: webapp.hostNames[0], size: config.size, region: config.region });
                                         return cb(null);
                                     }
                                 });
                         }
                     });
-            } else {
+            } else if (config.type.toLowerCase() === 'mysql') {
+                // create mysql
+                var name = config.name ||
+                    (config.region.replace(' ', '') + config.tier + config.capacity + '-' + config.size).toLowerCase();
+                resource.createMySqlServer(
+                    clientId,
+                    tenantId,
+                    key,
+                    subsId,
+                    config.resourcegroup,
+                    config.region.replace(' ', ''),
+                    name,
+                    config.username,
+                    config.password,
+                    config.tier,
+                    config.capacity,
+                    config.size,
+                    function (err, mysqlServer) {
+                        if (err) {
+                            console.error(err);
+                            return cb(err);
+                        } else {
+                            results.push({
+                                type: config.type, resourcegroup: config.resourcegroup, name: mysqlServer.name, address: mysqlServer.name,
+                                region: config.region, username: mysqlServer.username, password: mysqlServer.password, size: config.size
+                            });
+                            return cb(null);
+                        }
+                    }
+                )
+            }
+            else {
                 console.error('invalid resource type: ' + config.type);
                 return cb('invalid resource type: ' + config.type);
             }
@@ -139,7 +173,7 @@ function runPsExecOnWindowsRemote(hostname, username, password, cmd, callback) {
 
 // deploy docker to VM
 // vmInfos: [ { address, os, username, keyfile, key}]
-function deployTestAppToVM(vmInfos, dockerImageName, callback) {
+function deployTestAppToVM(vmInfos, dockerImageName, mysqlEndpoint, mysqlUserName, mysqlPassword, callback) {
     async.each(vmInfos,
         function (vmInfo, cb) {
             if (vmInfo.os === 'windows') {
@@ -164,7 +198,14 @@ function deployTestAppToVM(vmInfos, dockerImageName, callback) {
                             return cb(err);
                         }
 
-                        var dockercmd = 'docker pull ' + dockerImageName + ' &&  docker run -p 80:80 -d ' + dockerImageName + ' > /dev/null 2>&1';
+                        var dockercmd = 'docker pull ' + dockerImageName + ' &&  ' +
+                            ' docker run ' +
+                            ' -e MYSQL_ENDPOINT=jdbc:mysql://' + mysqlEndpoint + ':3306/steelthread ' +
+                            ' -e MYSQL_USERNAME=$\'' + mysqlUserName + '\'' +
+                            ' -e MYSQL_PASSWORD=$\'' + mysqlPassword + '\'' +
+                            ' -e DATA_APP_CONTAINER_PORT=1111 ' +
+                            ' -p 80:1111 -d ' + dockerImageName +
+                            ' > /dev/null 2>&1';
                         utility.sshExecCmd(vmInfo.address, vmInfo.username, vmInfo.keyfilename, vmInfo.key, dockercmd, { verbose: false, sshPrintCommands: true }, function (err) {
                             if (err) return cb(err);
                             else return cb();
@@ -205,88 +246,102 @@ function deployTestClient(vmAddress, userName, keyFileName, key, callback) {
         });
 }
 
-function customizeTestPlan(sampletestplan, targettestplan, endpoints, threadnum, loopcount, rampupseconds, testfile, logfile, scenarionames) {
+// endpointInfo
+// { endpoint: 'testendpoint', targettestplan:'targettestplanname', scenarioname: 'scenarioname' }
+function customizeTestPlans(sampletestplan, testInfos, threadnum, loopcount, rampupseconds, testfile, logfile) {
     if (!fs.existsSync(sampletestplan)) {
-        return console.error('test plan file not exists ' + sampletestplan);
+        return console.error('sample test plan file not exists ' + sampletestplan);
     }
 
-    var content = fsExtra.readFileSync(sampletestplan, 'utf8');
-    var doc = new dom().parseFromString(content, 'application/xml');
 
-    //customize log file
-    var logfileNode = select(doc, '//stringProp[@name="filename"]');
-    logfileNode[0].textContent = logfile;
+    // generate test plan for each of endpoint
+    for (var testInfo of testInfos) {
+        var endpoint = testInfo.endpoint;
+        var targettestplan = testInfo.targettestplan;
+        var scenarioName = testInfo.scenarioname;
 
-    // customize endpoints
-    var endpointNodes = select(doc, '//stringProp[@name="HTTPSampler.domain"]');
-    for (var j = 0; j < endpointNodes.length; j++) {
-        endpointNodes[j].textContent = endpoints[Math.floor(j / 2)];
-    }
+        var content = fsExtra.readFileSync(sampletestplan, 'utf8');
+        var doc = new dom().parseFromString(content, 'application/xml');
 
-    // customize # of threads
-    var threadNumNodes = select(doc, '//stringProp[@name="ThreadGroup.num_threads"]');
-    for (var j = 0; j < threadNumNodes.length; j++) {
-        threadNumNodes[j].textContent = threadnum;
-    }
+        //customize log file
+        var logfileNode = select(doc, '//stringProp[@name="filename"]');
+        logfileNode[0].textContent = logfile;
 
-    // customize loopcount
-    var loopNodes = select(doc, '//stringProp[@name="LoopController.loops"]');
-    for (var j = 0; j < loopNodes.length; j++) {
-        loopNodes[j].textContent = loopcount;
-    }
-    // customize rampup seconds
-    var rampupNodes = select(doc, '//stringProp[@name="ThreadGroup.ramp_time"]');
-    for (var j = 0; j < rampupNodes.length; j++) {
-        rampupNodes[j].textContent = rampupseconds;
-    }
-
-    // customize scenario names
-    // mark test metrics into scenario names
-    // e.g. azure_westus_vm_standard_a1_ubuntu_500_1_5
-    var threadGroups = select(doc, '//ThreadGroup[@testclass="ThreadGroup"]/@testname');
-    for (var j = 0; j < threadGroups.length; j++) {
-        threadGroups[j].textContent = scenarionames[j];
-    }
-
-    // customize test file for file upload scenario
-    var fileNodes = select(doc, '//stringProp[@name="File.path"]');
-    for (var j = 0; j < fileNodes.length; j++) {
-        fileNodes[j].textContent = testfile;
-    }
-
-    var eleFileNodes = select(doc, '//elementProp[@elementType="HTTPFileArg"]/@name');
-    for (var j = 0; j < eleFileNodes.length; j++) {
-        eleFileNodes[j].textContent = testfile;
-    }
-
-    // save updated test plan
-    var newDoc = new serializer().serializeToString(doc);
-    fs.writeFileSync(targettestplan, newDoc);
-}
-
-function runTest(clientAddress, userName, keyFileName, key, testplanfile, logfile, locallogfile, callback) {
-    console.log('running test against ' + clientAddress + '...\n');
-    console.log('local log file: ' + locallogfile);
-    var cmds = 'cd ~/apache-jmeter-3.2/bin && ./jmeter.sh -n -t ' + testplanfile + ' -l ' + logfile;
-    utility.sshExecCmd(clientAddress, userName, keyFileName, key, cmds, { verbose: true, sshPrintCommands: true }, function (err) {
-        if (err) {
-            console.error(err);
-        } else {
-            console.log('test done...');
+        // customize endpoints
+        var endpointNodes = select(doc, '//stringProp[@name="HTTPSampler.domain"]');
+        for (var j = 0; j < endpointNodes.length; j++) {
+            endpointNodes[j].textContent = endpoint;
         }
 
-        // download test results    
-        utility.downloadFilesViaScp([logfile],
-            [locallogfile],
-            clientAddress, userName, keyFileName, key, function (err) {
-                if (err) console.error('download test result failed');
+        // customize # of threads
+        var threadNumNode = select(doc, '//stringProp[@name="ThreadGroup.num_threads"]');
+        threadNumNode.textContent = threadnum;
+
+        // customize loopcount
+        var loopNode = select(doc, '//stringProp[@name="LoopController.loops"]');
+        loopNode.textContent = loopcount;
+
+        // customize rampup seconds
+        var rampupNode = select(doc, '//stringProp[@name="ThreadGroup.ramp_time"]');
+        rampupNode.textContent = rampupseconds;
+
+        // customize scenario names
+        // mark test metrics into scenario names
+        // e.g. azure_westus_vm_standard_a1_ubuntu_500_1_5
+        var threadGroup = select(doc, '//ThreadGroup[@testclass="ThreadGroup"]/@testname');
+        threadGroup.textContent = scenarioName;
+
+
+        // customize test file for file upload scenario
+        var fileNode = select(doc, '//stringProp[@name="File.path"]');
+        fileNode.textContent = testfile;
+
+        var eleFileNode = select(doc, '//elementProp[@elementType="HTTPFileArg"]/@name');
+        eleFileNode.textContent = testfile;
+
+        // save updated test plan
+        var newDoc = new serializer().serializeToString(doc);
+        fs.writeFileSync(targettestplan, newDoc);
+    }
+}
+
+function runTest(clientAddress, userName, keyFileName, key, testplanfiles, logfile, locallogfile, callback) {
+    console.log('running test against ' + clientAddress + '...\n');
+    console.log('local log file: ' + locallogfile);
+
+    // run multiple test plans one by one
+    async.each(testplanfiles,
+        function (testplanfile, cb) {
+            var cmds = 'cd ~/apache-jmeter-3.2/bin && ./jmeter.sh -n -t ' + testplanfile + ' -l ' + logfile;
+            utility.sshExecCmd(clientAddress, userName, keyFileName, key, cmds, { verbose: true, sshPrintCommands: true }, function (err) {
+                if (err) {
+                    console.error(err);
+                    return cb(err);
+                } else {
+                    console.log('test plan ' + testplanfile + ' done...');
+                    return cb();
+                }
+            })
+        }, function (err) {
+            if (err) {
+                console.error('test execution error: \n ' + err);
                 return callback(err);
-            });
-    })
+            } else {
+                console.log('all test execution done!');
+                // download test results
+                utility.downloadFilesViaScp([logfile],
+                    [locallogfile],
+                    clientAddress, userName, keyFileName, key, function (err) {
+                        if (err) console.error('download test result failed');
+                        return callback(err);
+                    });
+            }
+        }
+    )
 }
 
 exports.createAzureResource = createAzureResource;
 exports.deployTestAppToVM = deployTestAppToVM;
 exports.deployTestClient = deployTestClient;
-exports.customizeTestPlan = customizeTestPlan;
+exports.customizeTestPlans = customizeTestPlans;
 exports.runTest = runTest;

@@ -32,16 +32,17 @@ deploy.createAzureResource(clientId, tenantId, key, subsId, testConfig.azure.res
 
     // 2. deploy test app to resources
     var vmInfos = [];
-    var resourceAddresses = [];
+    var mySqlServer = '';
     for (var item of resources) {
-        resourceAddresses.push(item.address);
         if (item.type === 'vm') {
             vmInfos.push({ address: item.address, username: item.username, key: item.key, os: item.os });
+        } else if (item.type === 'mysql') {
+            mySqlServer = item;
         }
     }
 
     console.log(seperator + '\nStep 2. deploying test app to azure test resources...\n');
-    deploy.deployTestAppToVM(vmInfos, testConfig.azure.testapp.dockerimage, function (err) {
+    deploy.deployTestAppToVM(vmInfos, testConfig.azure.testapp.dockerimage, mySqlServer.address, mySqlServer.username, mySqlServer.password, function (err) {
         if (err) {
             console.log('deployTestAppToVM err: \n' + err);
             return 1;
@@ -56,12 +57,8 @@ deploy.createAzureResource(clientId, tenantId, key, subsId, testConfig.azure.res
 
             // 4. deploy test client
             console.log('testclients: ' + JSON.stringify(clients));
-            var clientAddress = [];
-            for (var item of clients) {
-                clientAddress.push(item.address);
-            }
             console.log(seperator + '\nStep 4. deploying test client...\n');
-            deploy.deployTestClient(clientAddress[0], testConfig.azure.client.username, null, testConfig.azure.client.password, function (err, result) {
+            deploy.deployTestClient(clients[0].address, testConfig.azure.client.username, null, testConfig.azure.client.password, function (err, result) {
                 console.log('test client: \n' + JSON.stringify(clients));
 
                 if (err) {
@@ -69,37 +66,54 @@ deploy.createAzureResource(clientId, tenantId, key, subsId, testConfig.azure.res
                     return 1;
                 }
 
-                // 5. customize test plan
+                // 5. customize test plan                
+                var localtestplans = [];
+                var remotetestplans = [];
+                var testresources = [];
+                var testplanInfos = [];
+
                 var homefolder = '/home/' + clients[0].username + '/';
-                var localtestplan = path.dirname(testConfig.azure.testplan.sampletestplan) + '\\azuretestplan.jmx';
                 var remotetestplanfile = homefolder + '/azuretestplan.jmx';
                 var remotelogfile = homefolder + '/azuretestresult.csv';
                 var remotetestfile = homefolder + '/azuretestfile.jpg';
-                var scenarioNames = [];
-                for (var target of testConfig.azure.resources) {
-                    // e.g. azure_westus_vm_standard_a1_ubuntu_500_1_5
-                    var info = ['azure', target.region.replace(' ', ''), target.type, target.size.replace(new RegExp('_', 'g'), ''),
-                        testConfig.azure.testplan.threadnum, testConfig.azure.testplan.loopcount, testConfig.azure.testplan.rampupseconds];
-                    scenarioNames.push(info.join('_'));
+
+                for (var resource of resources) {
+                    if (resource.type === 'vm' || resource.type === 'webapp') {
+                        testresources.push(resource);
+                    }
                 }
 
+                for (var testtarget of testresources) {
+
+                    var localtestplan = path.dirname(testConfig.azure.testplan.sampletestplan) + '\\azuretestplan' + utility.generateRandomId(100) + '.jmx';
+                    var remotetestplan = homefolder + '/' + path.basename(localtestplan);
+
+                    localtestplans.push(localtestplan);
+                    remotetestplans.push(remotetestplan);
+
+                    // e.g. azure_westus_vm_standard_a1_ubuntu_500_1_5z
+                    var info = ['azure', testtarget.region.replace(' ', ''), testtarget.type, testtarget.size,
+                        testConfig.azure.testplan.threadnum, testConfig.azure.testplan.loopcount, testConfig.azure.testplan.rampupseconds];
+
+                    testplanInfos.push({ endpoint: testtarget.address, targettestplan: localtestplan, scenarioname: info });
+                }
+
+
                 console.log(seperator + '\nStep 5. customzing test plan based on configuration...\n');
-                deploy.customizeTestPlan(testConfig.azure.testplan.sampletestplan,
-                    localtestplan,
-                    resourceAddresses,
+                deploy.customizeTestPlans(testConfig.azure.testplan.sampletestplan,
+                    testplanInfos,
                     testConfig.azure.testplan.threadnum,
                     testConfig.azure.testplan.loopcount,
                     testConfig.azure.testplan.rampupseconds,
                     remotetestfile,
-                    remotelogfile,
-                    scenarioNames);
+                    remotelogfile);
 
                 // 6. copy test plan and test file to remote test client                    
-                console.log(seperator + '\nStep 6. uploading test plan to client ' + clientAddress[0] + '...\n');
+                console.log(seperator + '\nStep 6. uploading test plan to client ' + clients[0].address + '...\n');
                 utility.uploadFilesViaScp(
-                    [localtestplan, testConfig.azure.testplan.testfile],
-                    [remotetestplanfile, remotetestfile],
-                    clientAddress[0],
+                    localtestplans.concat(testConfig.azure.testplan.testfile),
+                    remotetestplans.concat(remotetestfile),
+                    clients[0].address,
                     clients[0].username,
                     '',
                     clients[0].key,
@@ -113,9 +127,9 @@ deploy.createAzureResource(clientId, tenantId, key, subsId, testConfig.azure.res
 
                         var locallogfile = testConfig.azure.testplan.localtestresultsfolder + '\\azuretestresult.csv';
                         var output = {};
-                        output.clientAddress = clientAddress[0];
+                        output.clientAddress = clients[0].address;
                         output.remotelogfile = remotelogfile;
-                        output.remotetestplan = remotetestplanfile;
+                        output.remotetestplans = remotetestplans;
                         output.remoteuser = clients[0].username;
                         output.remotekey = clients[0].key;
                         output.locallogfile = locallogfile;
@@ -128,7 +142,7 @@ deploy.createAzureResource(clientId, tenantId, key, subsId, testConfig.azure.res
                             output.remoteuser,
                             '',
                             output.remotekey,
-                            output.remotetestplan,
+                            output.remotetestplans,
                             output.remotelogfile,
                             output.locallogfile,
                             function (err, result) {

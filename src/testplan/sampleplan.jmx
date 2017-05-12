@@ -32,7 +32,7 @@
             <samplerData>false</samplerData>
             <xml>false</xml>
             <fieldNames>true</fieldNames>
-            <responseHeaders>false</responseHeaders>
+            <responseHeaders>true</responseHeaders>
             <requestHeaders>false</requestHeaders>
             <responseDataOnError>false</responseDataOnError>
             <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
@@ -44,16 +44,16 @@
             <connectTime>true</connectTime>
           </value>
         </objProp>
-        <stringProp name="filename">E:\work\java\linux_webapp_log1.csv</stringProp>
+        <stringProp name="filename">E:\work\java\linux_webapp_log2.csv</stringProp>
       </ResultCollector>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Scenario-Azure" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="scenario" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">500</stringProp>
+        <stringProp name="ThreadGroup.num_threads">10</stringProp>
         <stringProp name="ThreadGroup.ramp_time">5</stringProp>
         <longProp name="ThreadGroup.start_time">1373789594000</longProp>
         <longProp name="ThreadGroup.end_time">1373789594000</longProp>
@@ -67,13 +67,13 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Variables pré-définies" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">javaubuntu19134.cloudapp.net</stringProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">testapp/index.html</stringProp>
+          <stringProp name="HTTPSampler.path">index.html</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -104,13 +104,13 @@
               </elementProp>
             </collectionProp>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">javaubuntu19134.cloudapp.net</stringProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/testapp/rest/file</stringProp>
+          <stringProp name="HTTPSampler.path">file</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -120,34 +120,17 @@
           <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
         </HTTPSamplerProxy>
         <hashTree/>
-      </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Scenario-AWS" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">1</stringProp>
-        </elementProp>
-        <stringProp name="ThreadGroup.num_threads">500</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">5</stringProp>
-        <longProp name="ThreadGroup.start_time">1491469732000</longProp>
-        <longProp name="ThreadGroup.end_time">1491469732000</longProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration"></stringProp>
-        <stringProp name="ThreadGroup.delay"></stringProp>
-        <stringProp name="TestPlan.comments">1. get index page. 2. file upload</stringProp>
-      </ThreadGroup>
-      <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="IndexPage" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="DBGet" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Variables pré-définies" enabled="true">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">ec2-35-166-208-218.us-west-2.compute.amazonaws.com</stringProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/testapp/index.html</stringProp>
+          <stringProp name="HTTPSampler.path">api/v1/movies?page=1</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -157,43 +140,50 @@
           <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
         </HTTPSamplerProxy>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="FileUpload" enabled="true">
-          <elementProp name="HTTPsampler.Files" elementType="HTTPFileArgs">
-            <collectionProp name="HTTPFileArgs.files">
-              <elementProp name="C:\Users\yungez\Downloads\What-is-docker-and-container.jpg" elementType="HTTPFileArg">
-                <stringProp name="File.path">C:\Users\yungez\Downloads\What-is-docker-and-container.jpg</stringProp>
-                <stringProp name="File.paramname">file</stringProp>
-                <stringProp name="File.mimetype">image/jpeg</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="Variables pré-définies" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="DBPut" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
-              <elementProp name="file" elementType="HTTPArgument">
+              <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">test</stringProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;id&quot; : 1,&#xd;
+  &quot;name&quot; : &quot;The Shawshank Redemption (1994)&quot;,&#xd;
+  &quot;keywords&quot; : &quot;accountant adding-machine adultery ambulance apple-pie aria assistant banker basalt baseball-team based-on-novella based-on-the-works-of-stephen-king beach beaten-to-death beating beer bet betrayal betting bible biblical-quote billy-club birdseye-shot black-market bloodhound bookshelf boom-shot border bottle-of-beer bribe bribery broken-window bromance brutality bullet cafeteria caged-bird camaraderie carving checkers chess-piece chess-set chessboard city-park collector compass contraband convict convicted-of-murder cornfield courtroom crow cult-film darkness death-of-friend detention-camp directorial-debut duet dying elderly-man embezzlement escape-from-prison exercise false-accusation fear feces feet-on-desk filth first-person-narration flash-camera flashback flashlight freedom fresh-fish friend friendship friendship-between-men gay-rape gay-sex gay-subtext ged geology gift glasses hammer hanging harmonica helicopter-shot hollow-book homoeroticism hope illiteracy imprisonment income-tax infidelity innocence inspection interracial-friendship invitation jail judge kickback killed-by-prison-guard large-format-camera laundering-money laundry letter librarian library library-cart life-imprisonment life-sentence lightning listening-to-music-on-headphones living locking-oneself-inside-a-room loudspeaker maggot maine male-bonding male-nudity male-rear-nudity manhunt mentor mentoring mexico military-prison missing-prisoner money-laundering murder murder-of-wife murder-trial newspaper-headline night not-guilty oak-tree ocean official-corruption opera parenting parole parole-board parole-hearing parole-violation penknife pet pet-bird phonograph phonograph-record photograph photographer pie pigeon plot-twist poetic-justice police-arrest police-brutality police-car police-siren portland-maine postcard poster prison prison-bus prison-cell prison-cell-search prison-escape prison-guard prison-library prison-yard prisoner public-address-system rain reading-a-letter-aloud record-album record-player redemption reference-to-al-capone reference-to-albert-einstein reference-to-alexandre-dumas reference-to-erle-stanley-gardner reference-to-fort-hancock-texas reference-to-hank-williams reference-to-jfk-assassination reference-to-john-f.-kennedy reference-to-louis-l&apos;amour reference-to-marilyn-monroe reference-to-mozart reference-to-national-geographic reference-to-raquel-welch reference-to-reader&apos;s-digest reference-to-rembrandt reference-to-rita-hayworth reference-to-robert-frost reference-to-robert-louis-stevenson reference-to-the-united-states-senate regret rehabilitated reporter revenge revolver rita-hayworth-poster rock-hammer rooftop rope rule sailboat sampler search search-party sentence sewer sex-standing-up shiv shoe-shine shoes shoeshine shot-to-death shower-room sin singing-along-with-a-record siren sitting-on-a-rooftop slow-dolly-in smuggler society solitary-confinement soprano stone-fence stone-wall subjective-camera suicide suicide-by-gunshot suicide-by-hanging suicide-of-friend suicide-of-villain surprise-ending talking-to-a-bird tar-pitch tarring-roof tax-return teaching-someone-to-read telephoto-lens threaten-to-drop-from-a-height three-word-title thunder time tin-box trial tunnel tunneling-to-freedom typewriter underdog unfaithful-wife vinyl-record violence voice-over-letter voice-over-narration vomiting wall-safe warden watching-a-movie water water-hose water-pipe weapon working-in-a-laundry worm wrongful-arrest wrongful-conviction wrongful-imprisonment year-1946 year-1947 year-1949 year-1954 year-1957 year-1963 year-1966 zihuatanejo-mexico&quot;,&#xd;
+  &quot;rating&quot; : 0.7,&#xd;
+  &quot;imageUri&quot; : null,&#xd;
+  &quot;thumbnailUri&quot; : null&#xd;
+}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
-                <boolProp name="HTTPArgument.use_equals">true</boolProp>
-                <stringProp name="Argument.name">file</stringProp>
               </elementProp>
             </collectionProp>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">ec2-35-166-208-218.us-west-2.compute.amazonaws.com</stringProp>
+          <stringProp name="HTTPSampler.domain">localhost</stringProp>
           <stringProp name="HTTPSampler.port"></stringProp>
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/testapp/rest/file</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
+          <stringProp name="HTTPSampler.path">api/v1/movies/1</stringProp>
+          <stringProp name="HTTPSampler.method">PUT</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
           <boolProp name="HTTPSampler.monitor">false</boolProp>
           <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
         </HTTPSamplerProxy>
-        <hashTree/>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Content-type</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
       </hashTree>
     </hashTree>
   </hashTree>

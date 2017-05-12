@@ -3,6 +3,7 @@
 // azure resources
 const azureWebApp = require('./azure/webApp.js');
 const azureVM = require('./azure/virtualMachine.js');
+const azureMySql = require('./azure/mysql.js');
 
 var resource = {};
 
@@ -39,6 +40,11 @@ resource.stopAzureVM = function (clientId, tenantId, key, subsId, resourceGroupN
 
 resource.deleteAzureVM = function (clientId, tenantId, key, subsId, resourceGroupName, vmName, callback) {
     return azureVM.deleteVM(clientId, tenantId, key, subsId, resourceGroupName, vmName, callback);
+}
+
+// 3. mysql server
+resource.createMySqlServer = function(clientId, tenantId, key, subsId, resourceGroupName, region, dbname, username, password, priceTier, capacity, size, callback) {
+    return azureMySql.createMySql(clientId, tenantId, key, subsId, resourceGroupName, region, dbname, username, password, priceTier, capacity, size, callback);
 }
 
 module.exports = resource;

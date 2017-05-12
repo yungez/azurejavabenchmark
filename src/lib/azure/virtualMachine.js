@@ -88,8 +88,7 @@ function createOrGetVirtualMachine(
         if (err) return callback(err);
         createStorageAccount(clientId, tenantId, key, subscriptionId, resourceGroupName, storageAccountName, location, 'Standard_LRS', osType, function (err, storageAccount) {
             if (err) return callback(err);
-            createPublicIP(clientId, tenantId, key, subscriptionId, resourceGroupName, publicIPName, location, domainLableName, function (err, publicIPInfo) {
-                console.log('createpublicIP: ' + JSON.stringify(publicIPInfo));
+            createPublicIP(clientId, tenantId, key, subscriptionId, resourceGroupName, publicIPName, location, domainLableName, function (err, publicIPInfo) {                
                 if (err) return callback(err);
                 createVNet(clientId, tenantId, key, subscriptionId, resourceGroupName, vnetName, location, function (err, vnetInfo) {
                     if (err) return callback(err);
@@ -103,12 +102,16 @@ function createOrGetVirtualMachine(
                                     if (err) return callback(err);
                                     getPublicIP(clientId, tenantId, key, subscriptionId, resourceGroupName, publicIPName, function (err, publicIPAddr) {
                                         if (err) return callback(err);
-                                        console.log('getpublicIP: ' + JSON.stringify(publicIPAddr));
+                                        //console.log('getpublicIP: ' + JSON.stringify(publicIPAddr));
+                                        var address = publicIPAddr.ipAddress;
+                                        if (address === '' || address === undefined) {
+                                            address = publicIPAddr.dnsSettings.fqdn;
+                                        }
                                         createVirtualMachines(clientId, tenantId, key, subscriptionId, resourceGroupName, vmName, location.replace(' ', ''), vmSize, storageAccountName, nicInfo.id,
                                             publisher, offer, sku, '', vmImageInfo[0].name, userName, password, function (err, vmInfo) {
                                                 if (err) return callback(err);
-                                                console.log(`creating vm ${vmInfo.name} with ip ${publicIPAddr.ipAddress} succssfully!`);
-                                                return callback(null, publicIPAddr.ipAddress);
+                                                console.log(`creating vm ${vmInfo.name} with address ${address} succssfully!`);
+                                                return callback(null, address);
                                             });
                                     });
                                 });
@@ -220,7 +223,7 @@ function createPublicIP(clientId, tenantId, key, subscriptionId, resourceGroupNa
             return callback(err, null);
         } else {
             // publicIP provision need some time
-            utils.sleep(30000);
+            utils.sleep(60000);
             return callback(err, publicIPInfo);
         }
     });

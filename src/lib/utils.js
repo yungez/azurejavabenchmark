@@ -138,12 +138,7 @@ function downloadFilesViaScp(sourceFiles, destFiles, hostaddress, username, keyF
     scpOptions.password = key;
   }
 
-  // create target dir if not exists
-  for (var destFile of destFiles) {
-    if (fs.existsSync(path.dirname(destFile))) {
-      fs.mkdirSync(path.dirname(destFile));
-    }
-  }
+
 
   scp2.scp(scpOptions, destFiles[0], function (err) {
     //console.log('scp option: ' + JSON.stringify(scpOptions));
