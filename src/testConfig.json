@@ -7,8 +7,8 @@
             "region": "east us",
             "resourcegroup": "test1",
             "name": "a1eastusclient",
-            "username": "yungez",
-            "password": "#Bugsfor$123"
+            "username": "username",
+            "password": "YourPassword"
         },
         "resources": [
             {
@@ -22,8 +22,8 @@
                 "os": "ubuntu",
                 "size": "Standard_A1",
                 "region": "east us",
-                "username": "yungez",
-                "password": "#Bugsfor$123",
+                "username": "username",
+                "password": "YourPassword",
                 "resourcegroup": "test1"
             },
             {
@@ -32,8 +32,8 @@
                 "tier": "Basic",
                 "capacity": 50,
                 "size": 51200,
-                "username": "yungez",
-                "password": "#Bugsfor$123",
+                "username": "username",
+                "password": "YourPassword",
                 "resourcegroup": "test1"
             }
         ],
